@@ -3,3 +3,4 @@ GUI/node_modules
 GUI/package-lock.json
 *.exe
 *.appimage
+localization/__pycache__
