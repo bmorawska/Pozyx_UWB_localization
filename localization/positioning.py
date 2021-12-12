@@ -169,17 +169,26 @@ if __name__ == "__main__":
     if not remote:
         remote_id = None
 
-    sio.connect('http://localhost:3000')
+    connected = False
+
+    while not connected:
+        try:
+            sio.connect('http://192.168.178.129:3000')
+            connected = True
+        except socketio.exceptions.ConnectionError:
+            print("Cannot establish connection. Next try in 5 secs.")
+        sleep(5)
+
 
     # necessary data for calibration, change the IDs and coordinates yourself according to your measurement
     anchors = [DeviceCoordinates(anchors[0], 1, Coordinates(0, 0, 2790)),
                DeviceCoordinates(anchors[1], 1, Coordinates(10490, 0, 2790)),
                DeviceCoordinates(anchors[2], 1, Coordinates(-405, 6000, 2790)),
                DeviceCoordinates(anchors[3], 1, Coordinates(10490, 6500, 2790)),
-               DeviceCoordinates(remote_tags[0], 0, Coordinates(10490, 6500, 2790)),
-               DeviceCoordinates(remote_tags[1], 0, Coordinates(10490, 6500, 2790)),
-               DeviceCoordinates(remote_tags[2], 1, Coordinates(10490, 6500, 2790)),
-               DeviceCoordinates(remote_tags[3], 0, Coordinates(10490, 6500, 2790)),]
+               DeviceCoordinates(anchors[4], 1, Coordinates(10490, 6500, 2790)),
+               DeviceCoordinates(anchors[5], 1, Coordinates(10490, 6500, 2790)),
+               DeviceCoordinates(anchors[6], 1, Coordinates(10490, 6500, 2790)),
+               DeviceCoordinates(anchors[7], 1, Coordinates(10490, 6500, 2790)),]
 
     # positioning algorithm to use, other is PozyxConstants.POSITIONING_ALGORITHM_TRACKING
     algorithm = PozyxConstants.POSITIONING_ALGORITHM_TRACKING
