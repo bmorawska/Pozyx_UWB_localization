@@ -1,0 +1,5 @@
+localization/venv
+GUI/node_modules
+GUI/package-lock.json
+*.exe
+*.appimage

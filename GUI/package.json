@@ -1,0 +1,21 @@
+{
+  "name": "localization_gui",
+  "version": "1.0.0",
+  "description": "GUI to show localization of human or device of any type",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "localization",
+    "p5.js",
+    "node"
+  ],
+  "author": "Barbara Morawska",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^4.4.0"
+  }
+}
