@@ -97,15 +97,12 @@ function drawTag(posX, posY) {
 
 function drawRuler() {
   push();
-  stroke(255, 0, 0, 200);
-  fill(255,0,0,32);
-  rect(windowWidth - 200, windowHeight - 150, 100, 100);
-  pop();
-
-  push();
   stroke(0)
+  line(windowWidth - 200, windowHeight - 50, windowWidth - 100, windowHeight - 50);
+  line(windowWidth - 200, windowHeight - 40, windowWidth - 200, windowHeight - 60);
+  line(windowWidth - 100, windowHeight - 40, windowWidth - 100, windowHeight - 60);
   textSize(30);
-  text('1m', windowWidth - 190, windowHeight - 55);  
+  text('1m', windowWidth - 170, windowHeight - 55);  
   pop();
 
 }
