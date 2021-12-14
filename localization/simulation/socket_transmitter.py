@@ -12,7 +12,7 @@ def connect():
 def disconnect():
     print('disconnected from server')
 
-sio.connect('http://localhost:3000')
+sio.connect('http://192.168.178.129:3000')
 
 ox = 5
 oy = 5

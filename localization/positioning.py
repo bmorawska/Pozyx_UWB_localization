@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from time import sleep
-from pypozyx import (POZYX_POS_ALG_UWB_ONLY, 
+from pypozyx import (POZYX_POS_ALG_UWB_ONLY,
                      POZYX_3D, 
                      Coordinates, 
                      POZYX_SUCCESS, 
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     # positioning algorithm to use, other is PozyxConstants.POSITIONING_ALGORITHM_TRACKING
     algorithm = PozyxConstants.POSITIONING_ALGORITHM_TRACKING
     # positioning dimension. Others are PozyxConstants.DIMENSION_2D, PozyxConstants.DIMENSION_2_5D
-    dimension = PozyxConstants.DIMENSION_3D
+    dimension = PozyxConstants.DIMENSION_2D
     # height of device, required in 2.5D positioning
     height = 1000
 
