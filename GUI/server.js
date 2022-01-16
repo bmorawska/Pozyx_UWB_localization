@@ -6,7 +6,7 @@ var server = app.listen(3000);
 
 app.use(express.static('public'));
 
-console.log('My socket server is running.')
+console.log('Localization server is running.')
 
 var io = socket(server, {
     cors: {

@@ -1,6 +1,8 @@
 from pypozyx import PozyxSerial, get_first_pozyx_serial_port, UWBSettings, SingleRegister, PozyxConstants, NetworkID
 
-from devices import anchors, remote_tags
+from devices import anchors, remote_tags, load_anchors
+
+load_anchors()
 
 # Identyfikacja taga przypiętego do komputera
 serial_port = get_first_pozyx_serial_port()

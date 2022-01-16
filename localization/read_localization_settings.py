@@ -1,6 +1,8 @@
 from pypozyx import PozyxSerial, get_first_pozyx_serial_port, PositionError, SingleRegister, FilterData, DeviceList
 
-from devices import anchors, remote_tags
+from devices import anchors, load_anchors, remote_tags
+
+load_anchors()
 
 serial_port = get_first_pozyx_serial_port()
 if serial_port is not None:

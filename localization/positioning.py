@@ -14,8 +14,10 @@ from pypozyx import (POZYX_POS_ALG_UWB_ONLY,
                      PozyxRegisters)
 from pypozyx.tools.version_check import perform_latest_version_check
 import socketio
+import argparse
+import os
 
-from devices import anchors, remote_tags
+from devices import load_anchors, sendable_anchors, device_coordinates
 
 class ReadyToLocalize(object):
     """Continuously calls the Pozyx positioning function and prints its position."""
@@ -80,18 +82,18 @@ class ReadyToLocalize(object):
         if network_id is None:
             self.pozyx.getErrorCode(error_code)
             print("LOCAL ERROR %s, %s" % (operation, self.pozyx.getErrorMessage(error_code)))
-            sio.emit('error', self.pozyx.getErrorMessage(error_code))
+            #sio.emit('error', self.pozyx.getErrorMessage(error_code))
             return
         status = self.pozyx.getErrorCode(error_code, self.remote_id)
         if status == POZYX_SUCCESS:
             print("ERROR %s on ID %s, %s" %
                   (operation, "0x%0.4x" % network_id, self.pozyx.getErrorMessage(error_code)))
-            sio.emit('error', self.pozyx.getErrorMessage(error_code))
+            #sio.emit('error', self.pozyx.getErrorMessage(error_code))
         else:
             self.pozyx.getErrorCode(error_code)
             print("ERROR %s, couldn't retrieve remote error code, LOCAL ERROR %s" %
                   (operation, self.pozyx.getErrorMessage(error_code)))
-            sio.emit('error', self.pozyx.getErrorMessage(error_code))
+            #sio.emit('error', self.pozyx.getErrorMessage(error_code))
             # should only happen when not being able to communicate with a remote Pozyx.
 
     def setAnchorsManual(self, save_to_flash=False):
@@ -130,7 +132,6 @@ class ReadyToLocalize(object):
             print("ANCHOR, 0x%0.4x, %s" % (device_list[i], str(anchor_coordinates)))
             anch[device_list[i]] = [int(anchor_coordinates.x), int(anchor_coordinates.y)]
 
-        sio.emit('anchors', anch)
         sleep(0.025)
 
     def printPublishAnchorConfiguration(self):
@@ -140,6 +141,16 @@ class ReadyToLocalize(object):
             print("ANCHOR,0x%0.4x,%s" % (anchor.network_id, str(anchor.coordinates)))
 
 
+
+parser = argparse.ArgumentParser(description='Pozyx localization program.')
+parser.add_argument('-i','--ip', help='Description for foo argument', default='localhost')
+args = parser.parse_args()
+
+ip = args.ip
+
+env = os.getenv("IP_ADDRESS")
+if env is not None:
+    ip = env
 
 sio = socketio.Client()
 
@@ -151,6 +162,10 @@ def connect():
 def disconnect():
     print('disconnected from server')
 
+@sio.on('anchors')
+def on_message(data):
+    #sio.emit('anchors', sendable_anchors)
+    print('Anchors position sent')
 
 if __name__ == "__main__":
     # Check for the latest PyPozyx version. Skip if this takes too long or is not needed by setting to False.
@@ -173,7 +188,7 @@ if __name__ == "__main__":
 
     while not connected:
         try:
-            sio.connect('http://192.168.178.129:3000')
+            sio.connect(f'http://{ip}:3000')
             connected = True
         except socketio.exceptions.ConnectionError:
             print("Cannot establish connection. Next try in 5 secs.")
@@ -181,14 +196,8 @@ if __name__ == "__main__":
 
 
     # necessary data for calibration, change the IDs and coordinates yourself according to your measurement
-    anchors = [DeviceCoordinates(anchors[0], 1, Coordinates(0, 0, 2790)),
-               DeviceCoordinates(anchors[1], 1, Coordinates(10490, 0, 2790)),
-               DeviceCoordinates(anchors[2], 1, Coordinates(-405, 6000, 2790)),
-               DeviceCoordinates(anchors[3], 1, Coordinates(10490, 6500, 2790)),
-               DeviceCoordinates(anchors[4], 1, Coordinates(10490, 6500, 2790)),
-               DeviceCoordinates(anchors[5], 1, Coordinates(10490, 6500, 2790)),
-               DeviceCoordinates(anchors[6], 1, Coordinates(10490, 6500, 2790)),
-               DeviceCoordinates(anchors[7], 1, Coordinates(10490, 6500, 2790)),]
+    load_anchors()
+    anchors = device_coordinates
 
     # positioning algorithm to use, other is PozyxConstants.POSITIONING_ALGORITHM_TRACKING
     algorithm = PozyxConstants.POSITIONING_ALGORITHM_TRACKING

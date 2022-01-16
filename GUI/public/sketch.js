@@ -31,12 +31,16 @@ function setup() {
   animationRadius = [0.0, 0.0];
   lastAnimationRadius = animationRadius;
   anchors = [
-    ['0x1234', 0.0, 0, 0],
-    ['0x5678', 10.0, 10.0],
-    ['0x9012', 0.0, 10.0],
-    ['0x3456', 10.0, 0.0],
-    ['0x7890', -10.0, -10.0]
+    ['0x6744',0.0, 0.0],
+    ['0x674c',4.0, 0.0],
+    ['0x672a',8.0, 0.0],
+    ['0x675b',12.0,0.0],
+    ['0x6e45',12.0,4.0],
+    ['0x6743',8.0, 4.0],
+    ['0x6757',4.0, 4.0],
+    ['0x6e04',0.0, 4.0]
   ];
+
 
   tx = 0;
   ty = 0;
@@ -46,7 +50,7 @@ function setup() {
   iter_last_values = 0;
 
   // Websocket connection
-  socket = io.connect('http://127.0.0.1:3000');
+  socket = io.connect('http://10.128.114.173:3000');
   socket.on('position', updateTag);
   socket.on('anchors', updateAnchors);
 }

@@ -1,7 +1,7 @@
 FROM node:16
 WORKDIR /usr/src/app
-COPY  ../../GUI/package*.json ./
+COPY package*.json .
 RUN npm install
-COPY ../../GUI/. .
+COPY . .
 EXPOSE 3000
 CMD [ "node", "server.js" ]
