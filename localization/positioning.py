@@ -1,23 +1,25 @@
 #!/usr/bin/env python
-from time import sleep
+from time import sleep, time
 from pypozyx import (POZYX_POS_ALG_UWB_ONLY,
-                     POZYX_3D, 
-                     Coordinates, 
-                     POZYX_SUCCESS, 
+                     POZYX_3D,
+                     Coordinates,
+                     POZYX_SUCCESS,
                      PozyxConstants,
                      version,
-                     DeviceCoordinates, 
-                     PozyxSerial, 
-                     get_first_pozyx_serial_port, 
-                     SingleRegister, 
-                     DeviceList, 
-                     PozyxRegisters)
+                     DeviceCoordinates,
+                     PozyxSerial,
+                     get_first_pozyx_serial_port,
+                     SingleRegister,
+                     DeviceList,
+                     PozyxRegisters,
+                     SensorData)
 from pypozyx.tools.version_check import perform_latest_version_check
 import socketio
 import argparse
 import os
 
 from devices import load_anchors, sendable_anchors, device_coordinates
+
 
 class ReadyToLocalize(object):
     """Continuously calls the Pozyx positioning function and prints its position."""
@@ -55,14 +57,17 @@ class ReadyToLocalize(object):
     def loop(self):
         """Performs positioning and displays/exports the results."""
         position = Coordinates()
+        sensor_data = SensorData()
         status = self.pozyx.doPositioning(
             position, self.dimension, self.height, self.algorithm, remote_id=self.remote_id)
-        if status == POZYX_SUCCESS:
-            self.printPublishPosition(position)
+        status_sd = self.pozyx.getAllSensorData(sensor_data, self.remote_id)
+
+        if (status and status_sd) == POZYX_SUCCESS:
+            self.printPublishPosition(position, sensor_data)
         else:
             self.printPublishErrorCode("positioning")
 
-    def printPublishPosition(self, position):
+    def printPublishPosition(self, position, sensor_data):
         """Prints the Pozyx's position and possibly sends it as a socketio packet"""
         network_id = self.remote_id
         if network_id is None:
@@ -72,8 +77,43 @@ class ReadyToLocalize(object):
 
         pos_x = int(position.x) / 1000
         pos_y = int(position.y) / 1000
-        sio.emit('position', {'x': pos_x, 'y': pos_y})
-      
+        msg = {
+            'time': time(),
+            'x': pos_x,
+            'y': pos_y,
+            'pressure': sensor_data.pressure.value,
+            'acceleration': {'x': sensor_data.acceleration.x,
+                             'y': sensor_data.acceleration.y,
+                             'z': sensor_data.acceleration.z
+                             },
+            'magnetic': {'x': sensor_data.magnetic.x,
+                         'y': sensor_data.magnetic.y,
+                         'z': sensor_data.magnetic.z
+                         },
+            'angular_vel': {'x': sensor_data.angular_vel.x,
+                            'y': sensor_data.angular_vel.y,
+                            'z': sensor_data.angular_vel.z
+                            },
+            'euler_angles': {'heading': sensor_data.euler_angles.heading,
+                             'roll': sensor_data.euler_angles.roll,
+                             'pitch': sensor_data.euler_angles.pitch
+                             },
+            'quaternion': {'w': sensor_data.quaternion.w,
+                           'x': sensor_data.quaternion.x,
+                           'y': sensor_data.quaternion.y,
+                           'z': sensor_data.quaternion.z
+                           },
+            'linear_acceleration': {'x': sensor_data.linear_acceleration.x,
+                                    'y': sensor_data.linear_acceleration.y,
+                                    'z': sensor_data.linear_acceleration.z,
+                                    },
+            'gravity_vector': {'x': sensor_data.gravity_vector.x,
+                               'y': sensor_data.gravity_vector.y,
+                               'z': sensor_data.gravity_vector.z,
+                               },
+        }
+        sio.emit('position', msg)
+        #sio.emit('position', {'x': pos_x, 'y': pos_y})
 
     def printPublishErrorCode(self, operation):
         """Prints the Pozyx's error and possibly sends it as a socketio packet"""
@@ -81,7 +121,8 @@ class ReadyToLocalize(object):
         network_id = self.remote_id
         if network_id is None:
             self.pozyx.getErrorCode(error_code)
-            print("LOCAL ERROR %s, %s" % (operation, self.pozyx.getErrorMessage(error_code)))
+            print("LOCAL ERROR %s, %s" %
+                  (operation, self.pozyx.getErrorMessage(error_code)))
             #sio.emit('error', self.pozyx.getErrorMessage(error_code))
             return
         status = self.pozyx.getErrorCode(error_code, self.remote_id)
@@ -107,7 +148,8 @@ class ReadyToLocalize(object):
 
         if save_to_flash:
             self.pozyx.saveAnchorIds(remote_id=self.remote_id)
-            self.pozyx.saveRegisters([PozyxRegisters.POSITIONING_NUMBER_OF_ANCHORS], remote_id=self.remote_id)
+            self.pozyx.saveRegisters(
+                [PozyxRegisters.POSITIONING_NUMBER_OF_ANCHORS], remote_id=self.remote_id)
         return status
 
     def printPublishConfigurationResult(self):
@@ -128,9 +170,12 @@ class ReadyToLocalize(object):
         anch = {}
         for i in range(list_size[0]):
             anchor_coordinates = Coordinates()
-            self.pozyx.getDeviceCoordinates(device_list[i], anchor_coordinates, self.remote_id)
-            print("ANCHOR, 0x%0.4x, %s" % (device_list[i], str(anchor_coordinates)))
-            anch[device_list[i]] = [int(anchor_coordinates.x), int(anchor_coordinates.y)]
+            self.pozyx.getDeviceCoordinates(
+                device_list[i], anchor_coordinates, self.remote_id)
+            print("ANCHOR, 0x%0.4x, %s" %
+                  (device_list[i], str(anchor_coordinates)))
+            anch[device_list[i]] = [
+                int(anchor_coordinates.x), int(anchor_coordinates.y)]
 
         sleep(0.025)
 
@@ -138,12 +183,13 @@ class ReadyToLocalize(object):
         """Prints and potentially publishes the anchor configuration"""
         anch = {}
         for anchor in self.anchors:
-            print("ANCHOR,0x%0.4x,%s" % (anchor.network_id, str(anchor.coordinates)))
-
+            print("ANCHOR,0x%0.4x,%s" %
+                  (anchor.network_id, str(anchor.coordinates)))
 
 
 parser = argparse.ArgumentParser(description='Pozyx localization program.')
-parser.add_argument('-i','--ip', help='Description for foo argument', default='localhost')
+parser.add_argument(
+    '-i', '--ip', help='Description for foo argument', default='localhost')
 args = parser.parse_args()
 
 ip = args.ip
@@ -154,18 +200,22 @@ if env is not None:
 
 sio = socketio.Client()
 
+
 @sio.event
 def connect():
     print('connection established')
+
 
 @sio.event
 def disconnect():
     print('disconnected from server')
 
+
 @sio.on('anchors')
 def on_message(data):
     #sio.emit('anchors', sendable_anchors)
     print('Anchors position sent')
+
 
 if __name__ == "__main__":
     # Check for the latest PyPozyx version. Skip if this takes too long or is not needed by setting to False.
@@ -194,7 +244,6 @@ if __name__ == "__main__":
             print("Cannot establish connection. Next try in 5 secs.")
         sleep(5)
 
-
     # necessary data for calibration, change the IDs and coordinates yourself according to your measurement
     load_anchors()
     anchors = device_coordinates
@@ -207,7 +256,8 @@ if __name__ == "__main__":
     height = 1000
 
     pozyx = PozyxSerial(serial_port)
-    r = ReadyToLocalize(pozyx, sio, anchors, algorithm, dimension, height, remote_id)
+    r = ReadyToLocalize(pozyx, sio, anchors, algorithm,
+                        dimension, height, remote_id)
     r.setup()
     while True:
         r.loop()

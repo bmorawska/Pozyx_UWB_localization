@@ -50,7 +50,7 @@ function setup() {
   iter_last_values = 0;
 
   // Websocket connection
-  socket = io.connect('http://192.168.1.118:3000/'); // ip a of laptop
+  socket = io.connect('http://10.128.114.173:3000/'); // ip a of laptop
   socket.on('position', updateTag);
   socket.on('anchors', updateAnchors);
 }

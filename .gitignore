@@ -6,3 +6,13 @@ GUI/package-lock.json
 localization/__pycache__
 
 node_modules/
+
+research/.idea/
+
+research/output/
+
+research/.ipynb_checkpoints/
+
+research/raw/
+
+run_server.sh
