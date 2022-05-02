@@ -6,3 +6,4 @@ GUI/package-lock.json
 localization/__pycache__
 
 *.zip
+venv/
