@@ -4,3 +4,6 @@ GUI/package-lock.json
 *.exe
 *.appimage
 localization/__pycache__
+
+*.zip
+venv/
