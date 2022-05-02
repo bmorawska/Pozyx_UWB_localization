@@ -14,22 +14,22 @@ import ReadyToLocalize
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--ip', type=str, required=False, default='localhost', help='Node server ip address.')
-parser.add_argument('--web', type=bool, required=False, default=True, help='Send data to web visualization')
+parser.add_argument('--web', action='store_true', required=False, help='Send data to web visualization')
+parser.set_defaults(noweb=False)
 args = parser.parse_args()
 
 if args.web:
     sio = socketio.Client()
-    anchors = []
 
-@sio.event
-def connect():
-    print('connection established')
+    @sio.event
+    def connect():
+        print('connection established')
 
-@sio.event
-def disconnect():
-    print('disconnected from server')
+    @sio.event
+    def disconnect():
+        print('disconnected from server')
 
-
+anchors = []
 
 if __name__ == "__main__":
     # Check for the latest PyPozyx version. Skip if this takes too long or is not needed by setting to False.
