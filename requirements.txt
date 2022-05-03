@@ -1,3 +1,4 @@
 python-socketio[client]
 pypozyx
 pyserial
+pyyaml

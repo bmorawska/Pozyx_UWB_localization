@@ -123,20 +123,26 @@ class ReadyToLocalize(object):
         print("Anchors found: {0}".format(list_size[0]))
         print("Anchor IDs: ", device_list)
 
-        anch = {}
+        if self.web:
+            web_anchors = []
         for i in range(list_size[0]):
             anchor_coordinates = Coordinates()
             self.pozyx.getDeviceCoordinates(device_list[i], anchor_coordinates, self.remote_id)
             print("ANCHOR, 0x%0.4x, %s" % (device_list[i], str(anchor_coordinates)))
-            anch[device_list[i]] = ["0x%0.4x".format(device_list[i]), int(anchor_coordinates.x), int(anchor_coordinates.y)]
-        
+            if self.web:
+                web_anchors.append(
+                    {
+                        "name": "0x%0.4x".format(device_list[i]), 
+                        "x": float(anchor_coordinates.x) / 1000, 
+                        "y": float(anchor_coordinates.y) / 1000
+                    }
+                )
+
         if self.web:
-            self.sio.emit('anchors', anch)
+            self.sio.emit('anchors', {'anchors': web_anchors})
         sleep(0.025)
 
     def printPublishAnchorConfiguration(self):
         """Prints and potentially publishes the anchor configuration"""
-        anch = {}
         for anchor in self.anchors:
             print("ANCHOR,0x%0.4x,%s" % (anchor.network_id, str(anchor.coordinates)))
-

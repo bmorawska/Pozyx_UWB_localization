@@ -30,12 +30,14 @@ anchors = []
 
 with open('anchors.csv', 'r') as file:
     lines = file.readlines()
-for line in lines:
-    anchor = line.split()
-    anchors.append(anchor)
+for line in lines[1:]:
+    anchor = line.split(',')
+    anchors.append({'name': anchor[0], 'x': float(anchor[2]), 'y': float(anchor[3])})
 
 if args.web:
     sio.emit('anchors', {'anchors': anchors})
+    # error emit test
+    sio.emit('error', 'Everything is ok, it is just a test.')
 
 while True:
     x = ox + math.cos(angle) * radius
@@ -43,6 +45,7 @@ while True:
     angle += 0.01
     if args.web:
         sio.emit('position', {'x': x, 'y': y})
+        pass
     else:
         print(f"['x': {x}, 'y': {y}]")
     time.sleep(0.01)

@@ -1,8 +1,11 @@
-from pypozyx import PozyxSerial, get_first_pozyx_serial_port, UWBSettings, SingleRegister, PozyxConstants, NetworkID
+from pypozyx import PozyxSerial, get_first_pozyx_serial_port, UWBSettings, SingleRegister, NetworkID
 
-from devices import anchors, remote_tags
+from load_settings import load_anchors, load_settings
 
-# Identyfikacja taga przypiętego do komputera
+anchors = load_anchors()
+new_settings = load_settings()
+
+# Identyfication of tag connected to the computer
 serial_port = get_first_pozyx_serial_port()
 if serial_port is not None:
     pozyx = PozyxSerial(serial_port)
@@ -20,8 +23,11 @@ print(uwb_settings)
 
 print(f"\nDevice {hex(me)} is connected to network.")
 
-# Identyfikacja urządzeń w sieci
-devices = anchors + remote_tags
+# Identyfication of devices in network
+devices = []
+for anchor in anchors:
+    devices.append(anchor.network_id)
+
 connected = 1
 for d in devices:
     who_am_i = SingleRegister()
@@ -35,18 +41,7 @@ for d in devices:
 
 print(f"{connected}/{len(devices) + 1} devices connected to network.\n")
 
-
-# Zmiana ustawień
-# Domyślne ustawienia CH: 5, bitrate: 110 kbit/s, prf: 64 MHz, plen: 1024 symbols, gain: 11.5 dB
-new_settings = {
-    "channel": 2,
-    "bitrate": PozyxConstants.UWB_BITRATE_110_KBPS,
-    "pulse_repetition_frequecy": PozyxConstants.UWB_PRF_16_MHZ,
-    "preamble_length": PozyxConstants.UWB_PLEN_2048,
-    "gain": 33.0,
-}
-
-# Najpierw zmieniamy urządzeniom w sieci, bo po zmianie stracimy z nimi kontakt.
+# We should change remote devices settings at first because we will lose communication after that change.
 settings_set = 0
 for d in devices:
     uwb_settings = UWBSettings(
@@ -64,7 +59,7 @@ for d in devices:
     else:
         print(f"Timeout for device {hex(d)}.")
 
-# Na końcu zmieniamy ustawienia urządzenia przypiętego do komputera.
+# At the end we change settings of the device connected to computer.
 uwb_settings = UWBSettings(
     channel=new_settings["channel"],
     prf=new_settings["pulse_repetition_frequecy"],
@@ -80,7 +75,7 @@ elif ret == 0:
 else:
     print(f"Timeout for device {hex(me)}.\n")
 
-# Testowanie połączenia po zmianie ustawień
+# Connection test after settings change.
 connected = 1
 for d in devices:
     who_am_i = SingleRegister()
@@ -92,7 +87,7 @@ for d in devices:
         print(f"Device {hex(d)} is not connected!!!")
 print(f"{connected}/{len(devices) + 1} devices connected to network.\n")
 
-# Nowe ustawiania
+# New settings print.
 uwb_settings = UWBSettings()
 pozyx.getUWBSettings(uwb_settings)
 print("New settings:")

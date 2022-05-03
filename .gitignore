@@ -7,3 +7,5 @@ localization/__pycache__
 
 *.zip
 venv/
+
+__pycache__/

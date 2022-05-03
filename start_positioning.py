@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 import argparse
 from time import sleep
-from pypozyx import (Coordinates, 
-                     PozyxConstants,
-                     DeviceCoordinates, 
+from pypozyx import (PozyxConstants,
                      PozyxSerial, 
                      get_first_pozyx_serial_port)
 from pypozyx.tools.version_check import perform_latest_version_check
 import socketio
 
-
-import ReadyToLocalize
+from ReadyToLocalize import ReadyToLocalize
+from load_settings import load_anchors
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--ip', type=str, required=False, default='localhost', help='Node server ip address.')
@@ -29,7 +27,7 @@ if args.web:
     def disconnect():
         print('disconnected from server')
 
-anchors = []
+anchors = load_anchors()
 
 if __name__ == "__main__":
     # Check for the latest PyPozyx version. Skip if this takes too long or is not needed by setting to False.
@@ -59,13 +57,6 @@ if __name__ == "__main__":
                 print("Cannot establish connection. Next try in 5 secs.")
             sleep(5)
 
-    # necessary data for calibration
-    with open('anchors.csv', 'r') as file:
-        lines = file.readlines()
-    for line in lines:
-        anchor = line.split()
-        anchors.append(DeviceCoordinates(anchor[0], 1, Coordinates(anchor[1], anchor[2], anchor[3])))
-
     # positioning algorithm to use, other is PozyxConstants.POSITIONING_ALGORITHM_TRACKING
     algorithm = PozyxConstants.POSITIONING_ALGORITHM_TRACKING
     # positioning dimension. Others are PozyxConstants.DIMENSION_2D, PozyxConstants.DIMENSION_2_5D
@@ -74,6 +65,8 @@ if __name__ == "__main__":
     height = 1000
 
     pozyx = PozyxSerial(serial_port)
+    if not args.web:
+        sio = None
     r = ReadyToLocalize(pozyx, sio, anchors, algorithm, dimension, height, remote_id, args.web)
     r.setup()
     while True:

@@ -1,7 +1,5 @@
 from pypozyx import PozyxSerial, get_first_pozyx_serial_port, PositionError, SingleRegister, FilterData, DeviceList
 
-from devices import anchors, remote_tags
-
 serial_port = get_first_pozyx_serial_port()
 if serial_port is not None:
     pozyx = PozyxSerial(serial_port)
@@ -19,7 +17,7 @@ print(f"Anchros ids:\t\t{anchor_list}.")
 
 
 algorithm = SingleRegister()
-pozyx.getPositionAlgorithm(algorithm, remote_id=anchors[1])
+pozyx.getPositionAlgorithm(algorithm)
 if algorithm == 0:
     algorithm = "POSITIONING_ALGORITHM_UWB_ONLY"
 elif algorithm == 3:
